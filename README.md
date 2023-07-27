@@ -70,3 +70,5 @@ NOTE: It is not advised to leave your token directly in your code, as it allows 
 
 - [Documentation](https://github.com/hoopengo/HappyAccidentsAPI/tree/master/docs/)
 - [Examples](https://github.com/hoopengo/HappyAccidentsAPI/tree/master/examples/)
+
+[//]: <- [Try it Out](https://t.me/HotBebrasBot)>
