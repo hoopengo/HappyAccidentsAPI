@@ -40,7 +40,7 @@ import asyncio
 
 from happyaccidentsapi import ClientAPI
 from happyaccidentsapi.models import CreateInferenceParams, Inference
-
+from happyaccidentsapi.enums import InferenceStatus
 
 api = ClientAPI(token="...")
 
@@ -51,12 +51,9 @@ inference_params = CreateInferenceParams(
 async def main():
   inference: Inference = await api.inference(inference_params)
 
-  while (images := api.inferences(inference.inferenceId)) == []:
-    asyncio.sleep(5)  # 1 request per 5 sec
+  print(inference.images)  # [<ImageRecord ...>, ...]
 
-  print(images)  # [<ImageRecord ...>, ...]
-
-  for v,image in enumerate(images):
+  for v,image in enumerate(inference.images):
     print(image.get_href())  # https://https://ik.imagekit.io/.../result-4.png
     image.save(f"./images/{image.id}-{image.filename}")
 
