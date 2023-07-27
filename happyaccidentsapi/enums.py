@@ -81,6 +81,13 @@ class PreprocessingTechnique(Enum):
     TILE = "TILE"
 
 
+class QueuePriority(Enum):
+    TEN_MINUTES = "10m"
+    ONE_MINUTE = "1m"
+    TEN_SECONDS = "10s"
+    ONE_SECOND = "1s"
+
+
 class SamplingMethod(Enum):
     EULER = "EULER"
     EULER_A = "EULER_A"
@@ -104,3 +111,8 @@ class VariationalAutoEncoder(Enum):
     SD_VAE_FT_MSE = "stabilityai/sd-vae-ft-mse"
     ABYSS_ORANGE_MIX = "abyss-orange-mix"
     KL_F8_ANIME2 = "kl-f8-anime2"
+
+
+class UserRole(Enum):
+    ADMIN = "ADMIN"
+    MOD = "MOD"
