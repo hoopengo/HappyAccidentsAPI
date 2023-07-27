@@ -1,9 +1,25 @@
 [tool.poetry]
 name = "happyaccidentsapi"
-version = "0.0.1"
+version = "0.0.0"
 description = "API Wrapper for HappyAccidents"
 authors = ["hoopengo <hoopengo@yandex.ru>"]
-readme = "README.md"
+readme = ["README.md"]
+license = "Apache-2.0"
+repository = "https://github.com/hoopengo/happyaccidentsapi"
+keywords = ["api", "happyaccidents", "ai"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "License :: OSI Approved :: Apache Software License",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"
