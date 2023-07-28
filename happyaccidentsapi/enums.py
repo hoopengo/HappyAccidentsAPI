@@ -46,7 +46,7 @@ class DownloadStatus(Enum):
 
 class InferenceStatus(Enum):
     PENDING = "PENDING"
-    COMPLTETD = "COMPLETED"
+    COMPLETED = "COMPLETED"
     FAILED = "FAILED"
 
 

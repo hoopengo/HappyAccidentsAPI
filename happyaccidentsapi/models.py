@@ -1,28 +1,169 @@
 from __future__ import annotations
 
 from datetime import datetime
+from io import BytesIO
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from enums import *
-from pydantic import BaseModel, Field
+import aiofiles
+from aiohttp import ClientSession
+from pydantic import BaseModel, Field, HttpUrl
+
+from .enums import *
+from .errors import handle_error
+
+
+class ModelCreator(BaseModel):
+    username: str
+    image: HttpUrl
+
+
+class ModelFileMetadata(BaseModel):
+    format: str
+    fp: Union[str, None] = None
+    size: Union[str, None] = None
+
+
+class ModelImage(BaseModel):
+    url: HttpUrl
+    nsfw: Union[bool, str]
+    width: int
+    height: int
+    generationProcess: Union[str, None]
+
+
+class ModelFile(BaseModel):
+    name: str
+    id: int
+    sizeKb: float
+    type: str
+    pickleScanResult: str
+    pickleScanMessage: str
+    virusScanResult: str
+    scannedAt: datetime
+    downloadUrl: HttpUrl
+    format: Union[str, None]
+    metadata: ModelFileMetadata
+
+
+class ModelVersion(BaseModel):
+    id: int
+    modelId: int
+    name: str
+    baseModel: CivitAiBaseModelType  # noqa: 405
+    description: Union[str, None]
+    trainedWords: List[str]
+    createdAt: datetime
+    files: List[ModelFile]
+    images: List[ModelImage]
+
+
+class ModelStats(BaseModel):
+    downloadCount: int
+    favoriteCount: int
+    commentCount: int
+    ratingCount: int
+    rating: float
+
+
+class MetadataItemVersion(BaseModel):
+    name: str
+    id: str
+    createdAt: datetime
+    modelMetadataItemId: str
+    externalId: Union[int, str]
+    baseModel: CivitAiBaseModelType  # noqa: 405
+    description: str
+    downloadUrl: HttpUrl
+    images: List[ModelImage]
+    files: List[ModelFile]
+
+
+class MetadataItem(BaseModel):
+    id: str
+    name: str
+    activeVersionId: Union[str, None] = None
+    activeVersion: Union[MetadataItemVersion, None] = None
+    author: Union[str, None]
+    authorAvatarUrl: Union[HttpUrl, None] = None
+    externalId: Union[int, str]
+    type: CivitAiModelType  # noqa: 405
+    allowCommercialUse: str
+    allowNoCredit: bool
+    nsfw: bool
+    description: Union[str, None]
+    requestingUserId: str
+    createdAt: datetime
+    ratings: ModelStats
+    downloadStatus: DownloadStatus  # noqa
+    tags: List[str]
+    trainedWords: List[str]
+    thumbnailImageUrl: HttpUrl
+    thumbnailImageNsfw: bool
+    versionMetadataItems: List[MetadataItemVersion]
+    volumePath: Union[str, None]
+    modelCheckpointFilename: Union[str, None]
+    modelProvider: Union[str, None]
+    configYaml: Union[str, None]
+    datetimeDeleted: Union[datetime, None]
+
+
+class MetadataItems(BaseModel):
+    items: List[MetadataItem]
+    paginationMetadata: RangePaginationMetadata
+
+    def first(self):
+        return self.items[0]
+
+
+class Model(BaseModel):
+    id: int
+    name: str
+    description: str
+    creator: ModelCreator
+    type: CivitAiModelType  # noqa: 405
+    nsfw: bool
+    allowNoCredit: bool
+    allowCommercialUse: str
+    allowDerivatives: bool
+    allowDifferentLicense: bool
+    modelVersions: List[ModelVersion]
+    stats: ModelStats
+    tags: List[str]
+
+
+class ModelsMetadata(BaseModel):
+    totalItems: int
+    currentPage: int
+    pageSize: int
+    totalPages: int
+    nextPage: Union[HttpUrl, None] = None
+
+
+class Models(BaseModel):
+    items: List[Model]
+    metadata: ModelsMetadata
+
+    def first(self):
+        return self.items[0]
 
 
 class CannyEdgesPayload(BaseModel):
-    lowThreshold: int = Field(..., title="Lowthreshold")
-    upperThreshold: int = Field(..., title="Upperthreshold")
+    lowThreshold: int = Field(title="Lowthreshold")
+    upperThreshold: int = Field(title="Upperthreshold")
 
 
 class Esrgan4xUpscalingParams(BaseModel):
     parentInferenceId: Optional[str] = Field(None, title="Parentinferenceid")
-    imageUrl: str = Field(..., title="Imageurl")
-    scale: Optional[float] = Field(4, title="Scale")
+    imageUrl: str = Field(title="Imageurl")
+    scale: Optional[float] = Field(4.0, title="Scale")
     faceEnhance: Optional[bool] = Field(False, title="Faceenhance")
 
 
 class FaceRestoreParams(BaseModel):
     parentInferenceId: Optional[str] = Field(None, title="Parentinferenceid")
-    imageUrl: str = Field(..., title="Imageurl")
+    imageUrl: str = Field(title="Imageurl")
     fidelity: Optional[float] = Field(0.5, title="Fidelity")
     backgroundEnhance: Optional[bool] = Field(False, title="Backgroundenhance")
     faceUpsample: Optional[bool] = Field(False, title="Faceupsample")
@@ -30,7 +171,7 @@ class FaceRestoreParams(BaseModel):
 
 
 class HedPayload(BaseModel):
-    scribble: bool = Field(..., title="Scribble")
+    scribble: bool = Field(title="Scribble")
 
 
 class HighResFixParams(BaseModel):
@@ -40,50 +181,94 @@ class HighResFixParams(BaseModel):
 
 
 class ImageRecord(BaseModel):
-    id: str = Field(..., title="Id")
-    folderPath: str = Field(..., title="Folderpath")
-    filename: str = Field(..., title="Filename")
-    createdAt: str = Field(..., title="Createdat")
-    userId: str = Field(..., title="Userid")
-    inferenceJobId: str = Field(..., title="Inferencejobid")
-    favorite: bool = Field(..., title="Favorite")
-    nsfw: bool = Field(..., title="Nsfw")
+    id: str = Field(title="Id")
+    folderPath: str = Field(title="Folderpath")
+    filename: str = Field(title="Filename")
+    createdAt: str = Field(title="Createdat")
+    userId: str = Field(title="Userid")
+    inferenceJobId: str = Field(title="Inferencejobid")
+    favorite: bool = Field(title="Favorite")
+    nsfw: bool = Field(title="Nsfw")
+
+    @classmethod
+    async def _download_file_bytes_io(
+        cls,
+        destination: BytesIO,
+        seek: bool,
+        bytes_: bytes,
+    ) -> BytesIO:
+        destination.write(bytes_)
+        destination.flush()
+        if seek is True:
+            destination.seek(0)
+        return destination
+
+    @classmethod
+    async def _download_file(
+        cls,
+        destination: Union[str, Path],
+        bytes_: bytes,
+    ) -> None:
+        async with aiofiles.open(destination, "wb") as f:
+            await f.write(bytes_)
+
+    async def save(
+        self,
+        destination: Optional[Union[BytesIO, Path, str]] = None,
+        seek: bool = True,
+    ) -> Optional[BytesIO]:
+        if destination is None:
+            destination = BytesIO()
+
+        async with ClientSession() as session:
+            res = await session.get(self.get_url())
+            if not res.status == 200:
+                return handle_error(res, await res.json())
+
+            bytes_ = await res.read()
+            if isinstance(destination, (str, Path)):
+                await self._download_file(destination, bytes_)
+                return None
+            return await self._download_file_bytes_io(destination, seek, bytes_)
+
+    def get_url(self) -> HttpUrl:
+        return f"https://ik.imagekit.io/hb42m9hh0/{self.folderPath}/{self.filename}"
 
 
 class LoraParams(BaseModel):
-    id: str = Field(..., title="Id")
-    weight: float = Field(..., title="Weight")
+    id: str = Field(title="Id")
+    weight: float = Field(title="Weight")
 
 
 class MidasDepthPayload(BaseModel):
-    surfaceNormalAngleRadians: float = Field(..., title="Surfacenormalangleradians")
-    backgroundThreshold: float = Field(..., title="Backgroundthreshold")
-    depthAndNormal: bool = Field(..., title="Depthandnormal")
+    surfaceNormalAngleRadians: float = Field(title="Surfacenormalangleradians")
+    backgroundThreshold: float = Field(title="Backgroundthreshold")
+    depthAndNormal: bool = Field(title="Depthandnormal")
 
 
 class MlsdPayload(BaseModel):
-    valueThreshold: float = Field(..., title="Valuethreshold")
-    distanceThreshold: float = Field(..., title="Distancethreshold")
+    valueThreshold: float = Field(title="Valuethreshold")
+    distanceThreshold: float = Field(title="Distancethreshold")
 
 
 class ModelDownloadRequestParams(BaseModel):
-    externalId: str = Field(..., title="Externalid")
+    externalId: str = Field(title="Externalid")
     modelVersionExternalId: Optional[str] = Field(None, title="Modelversionexternalid")
 
 
 class OpenposePayload(BaseModel):
-    includeFace: bool = Field(..., title="Includeface")
-    includeBody: bool = Field(..., title="Includebody")
-    includeHands: bool = Field(..., title="Includehands")
+    includeFace: bool = Field(title="Includeface")
+    includeBody: bool = Field(title="Includebody")
+    includeHands: bool = Field(title="Includehands")
 
 
 class PreprocessingResult(BaseModel):
-    imageDataUri: str = Field(..., title="Imagedatauri")
+    imageDataUri: str = Field(title="Imagedatauri")
 
 
 class RangePaginationMetadata(BaseModel):
-    currentPage: int = Field(..., title="Currentpage")
-    pageSize: int = Field(..., title="Pagesize")
+    currentPage: int = Field(title="Currentpage")
+    pageSize: int = Field(title="Pagesize")
     totalItems: Optional[int] = Field(None, title="Totalitems")
 
 
@@ -92,20 +277,10 @@ class UpdateImageParams(BaseModel):
     nsfw: Optional[bool] = Field(None, title="Nsfw")
 
 
-class ValidationError(BaseModel):
-    loc: List[Union[str, int]] = Field(..., title="Location")
-    msg: str = Field(..., title="Message")
-    type: str = Field(..., title="Error Type")
-
-
 class WebhookEvent(BaseModel):
-    id: str = Field(..., title="Id")
-    type: str = Field(..., title="Type")
+    id: str = Field(title="Id")
+    type: str = Field(title="Type")
     data: Optional[Dict[str, Any]] = Field({}, title="Data")
-
-
-class HTTPValidationError(BaseModel):
-    detail: Optional[List[ValidationError]] = Field(None, title="Detail")
 
 
 class PreprocessingParams(BaseModel):
@@ -129,15 +304,15 @@ class PreprocessingParams(BaseModel):
 
 
 class User(BaseModel):
-    id: str = Field(..., title="Id")
+    id: str = Field(title="Id")
     username: Optional[str] = Field(None, title="Username")
     fullName: Optional[str] = Field(None, title="Fullname")
     avatarUrl: Optional[str] = Field(None, title="Avatarurl")
-    createdAt: datetime = Field(..., title="Createdat")
+    createdAt: datetime = Field(title="Createdat")
     nsfwEnabled: Optional[bool] = Field(False, title="Nsfwenabled")
     nsfwDefaultUnblur: Optional[bool] = Field(False, title="Nsfwdefaultunblur")
     nsfwShowModels: Optional[bool] = Field(False, title="Nsfwshowmodels")
-    email: str = Field(..., title="Email")
+    email: str = Field(title="Email")
     status: AccountStatus  # noqa: F405
     tosAckVersion: Optional[str] = Field(None, title="Tosackversion")
     lastAccess: Optional[datetime] = Field(None, title="Lastaccess")
@@ -147,22 +322,22 @@ class User(BaseModel):
 
 class CreateInferenceParams(BaseModel):
     parentInferenceId: Optional[str] = Field(None, title="Parentinferenceid")
-    modelId: str = Field(..., title="Modelid")
-    prompt: str = Field(..., title="Prompt")
+    modelId: str = Field(title="Modelid")
+    prompt: str = Field(title="Prompt")
     negativePrompt: Optional[str] = Field("", title="Negativeprompt")
     baseImageUrl: Optional[str] = Field(None, title="Baseimageurl")
     maskImageUrl: Optional[str] = Field(None, title="Maskimageurl")
-    inpaintingMaskBlur: Optional[float] = Field(3, title="Inpaintingmaskblur")
+    inpaintingMaskBlur: Optional[float] = Field(3.0, title="Inpaintingmaskblur")
     outputWpx: Optional[int] = Field(512, title="Outputwpx")
     outputHpx: Optional[int] = Field(512, title="Outputhpx")
     numImagesToGenerate: Optional[int] = Field(1, title="Numimagestogenerate")
     numInferenceSteps: Optional[int] = Field(25, title="Numinferencesteps")
     samplingMethod: Optional[SamplingMethod] = "EULER"  # noqa: F405
-    vae: Optional[VariationalAutoEncoder] = None  # noqa: F405
+    vae: Optional[VariationalAutoEncoder] = "stabilityai/sd-vae-ft-mse"  # noqa: F405
     lora: Optional[LoraParams] = None
-    embeddingIds: Optional[List[str]] = Field(None, title="Embeddingids")
+    embeddingIds: Optional[List[str]] = Field([], title="Embeddingids")
     guidanceScale: Optional[float] = Field(7.0, title="Guidancescale")
-    strength: Optional[float] = Field(None, title="Strength")
+    strength: Optional[float] = Field(0.5, title="Strength", le=0.9, ge=0.1)
     clipSkip: Optional[int] = Field(1, title="Clipskip")
     seed: Optional[int] = Field(None, title="Seed")
     controlNetPayloads: Optional[List[PreprocessingParams]] = Field(
@@ -172,28 +347,32 @@ class CreateInferenceParams(BaseModel):
 
 
 class Inference(BaseModel):
-    inferenceId: UUID = Field(..., title="Inferenceid")
-    userId: UUID = Field(..., title="Userid")
+    inferenceId: UUID = Field(title="Inferenceid")
+    userId: UUID = Field(title="Userid")
     inferenceType: InferenceType  # noqa: F405
     inferencePayload: Union[
-        CreateInferenceParams, FaceRestoreParams, Esrgan4xUpscalingParams
-    ] = Field(..., title="Inferencepayload")
-    createdAt: datetime = Field(..., title="Createdat")
-    dequeuedAt: Optional[datetime] = Field(None, title="Dequeuedat")
-    completedAt: Optional[datetime] = Field(None, title="Completedat")
+        CreateInferenceParams,
+        FaceRestoreParams,
+        Esrgan4xUpscalingParams,
+    ] = Field(title="Inferencepayload")
+    createdAt: datetime = Field(title="CreatedAt")
+    dequeuedAt: Optional[datetime] = Field(None, title="DequeuedAt")
+    completedAt: Optional[datetime] = Field(None, title="CompletedAt")
     priority: Optional[QueuePriority] = None  # noqa: F405
     status: InferenceStatus  # noqa: F405
-    violatesTos: bool = Field(..., title="Violatestos")
+    violatesTos: bool = Field(title="Violatestos")
     parentInferenceId: Optional[UUID] = Field(None, title="Parentinferenceid")
 
 
 class InferenceHistoricalResult(BaseModel):
-    inferenceId: UUID = Field(..., title="Inferenceid")
-    userId: UUID = Field(..., title="Userid")
+    inferenceId: UUID = Field(title="Inferenceid")
+    userId: UUID = Field(title="Userid")
     inferencePayload: Union[
-        CreateInferenceParams, FaceRestoreParams, Esrgan4xUpscalingParams
-    ] = Field(..., title="Inferencepayload")
-    images: List[ImageRecord] = Field(..., title="Images")
+        CreateInferenceParams,
+        FaceRestoreParams,
+        Esrgan4xUpscalingParams,
+    ] = Field(title="Inferencepayload")
+    images: List[ImageRecord] = Field(title="Images")
     status: InferenceStatus  # noqa: F405
     inferenceType: InferenceType  # noqa: F405
     parentInferenceId: Optional[UUID] = Field(None, title="Parentinferenceid")
@@ -208,5 +387,5 @@ class UpdateInferenceParams(BaseModel):
 
 
 class ApiPaginatedListResponseInferenceHistoricalResult(BaseModel):
-    items: List[InferenceHistoricalResult] = Field(..., title="Items")
+    items: List[InferenceHistoricalResult] = Field(title="Items")
     paginationMetadata: RangePaginationMetadata
