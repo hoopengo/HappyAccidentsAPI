@@ -102,6 +102,7 @@ class ClientAPI:
                 data
             )
 
+    @token_required
     async def fetch_community_inferences(
         self,
         current_page: int = 0,

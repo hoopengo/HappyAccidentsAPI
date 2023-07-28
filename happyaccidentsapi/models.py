@@ -8,7 +8,7 @@ from uuid import UUID
 
 import aiofiles
 from aiohttp import ClientSession
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import AnyUrl, BaseModel, Field, HttpUrl
 
 from .enums import *
 from .errors import handle_error
@@ -16,21 +16,21 @@ from .errors import handle_error
 
 class ModelCreator(BaseModel):
     username: str
-    image: HttpUrl
+    image: Optional[AnyUrl]
 
 
 class ModelFileMetadata(BaseModel):
-    format: str
-    fp: Union[str, None] = None
-    size: Union[str, None] = None
+    format: Optional[str] = None
+    fp: Optional[str] = None
+    size: Optional[str] = None
 
 
 class ModelImage(BaseModel):
-    url: HttpUrl
+    url: AnyUrl
     nsfw: Union[bool, str]
     width: int
     height: int
-    generationProcess: Union[str, None]
+    generationProcess: Optional[str] = None
 
 
 class ModelFile(BaseModel):
@@ -38,13 +38,13 @@ class ModelFile(BaseModel):
     id: int
     sizeKb: float
     type: str
-    pickleScanResult: str
-    pickleScanMessage: str
-    virusScanResult: str
-    scannedAt: datetime
-    downloadUrl: HttpUrl
-    format: Union[str, None]
-    metadata: ModelFileMetadata
+    pickleScanResult: Optional[str] = None
+    pickleScanMessage: Optional[str] = None
+    virusScanResult: Optional[str] = None
+    scannedAt: Union[datetime, str, None] = ""
+    downloadUrl: Optional[AnyUrl] = None
+    format: Optional[str] = None
+    metadata: Optional[ModelFileMetadata] = None
 
 
 class ModelVersion(BaseModel):
@@ -52,30 +52,30 @@ class ModelVersion(BaseModel):
     modelId: int
     name: str
     baseModel: CivitAiBaseModelType  # noqa: 405
-    description: Union[str, None]
+    description: Optional[str] = None
     trainedWords: List[str]
-    createdAt: datetime
+    createdAt: Optional[datetime] = None
     files: List[ModelFile]
     images: List[ModelImage]
 
 
 class ModelStats(BaseModel):
-    downloadCount: int
-    favoriteCount: int
-    commentCount: int
-    ratingCount: int
-    rating: float
+    downloadCount: Optional[int] = None
+    favoriteCount: Optional[int] = None
+    commentCount: Optional[int] = None
+    ratingCount: Optional[int] = None
+    rating: Optional[float] = None
 
 
 class MetadataItemVersion(BaseModel):
     name: str
     id: str
-    createdAt: datetime
+    createdAt: Optional[datetime] = None
     modelMetadataItemId: str
     externalId: Union[int, str]
     baseModel: CivitAiBaseModelType  # noqa: 405
     description: str
-    downloadUrl: HttpUrl
+    downloadUrl: AnyUrl
     images: List[ModelImage]
     files: List[ModelFile]
 
@@ -83,30 +83,30 @@ class MetadataItemVersion(BaseModel):
 class MetadataItem(BaseModel):
     id: str
     name: str
-    activeVersionId: Union[str, None] = None
+    activeVersionId: Optional[str] = None
     activeVersion: Union[MetadataItemVersion, None] = None
-    author: Union[str, None]
-    authorAvatarUrl: Union[HttpUrl, None] = None
+    author: Optional[str] = None
+    authorAvatarUrl: Optional[AnyUrl] = None
     externalId: Union[int, str]
     type: CivitAiModelType  # noqa: 405
     allowCommercialUse: str
     allowNoCredit: bool
     nsfw: bool
-    description: Union[str, None]
+    description: Optional[str] = None
     requestingUserId: str
-    createdAt: datetime
+    createdAt: Optional[datetime] = None
     ratings: ModelStats
     downloadStatus: DownloadStatus  # noqa
     tags: List[str]
     trainedWords: List[str]
-    thumbnailImageUrl: HttpUrl
-    thumbnailImageNsfw: bool
+    thumbnailImageUrl: Optional[AnyUrl] = None
+    thumbnailImageNsfw: Optional[bool] = None
     versionMetadataItems: List[MetadataItemVersion]
-    volumePath: Union[str, None]
-    modelCheckpointFilename: Union[str, None]
-    modelProvider: Union[str, None]
-    configYaml: Union[str, None]
-    datetimeDeleted: Union[datetime, None]
+    volumePath: Optional[str] = None
+    modelCheckpointFilename: Optional[str] = None
+    modelProvider: Optional[str] = None
+    configYaml: Optional[str] = None
+    datetimeDeleted: Optional[datetime] = None
 
 
 class MetadataItems(BaseModel):
@@ -138,7 +138,7 @@ class ModelsMetadata(BaseModel):
     currentPage: int
     pageSize: int
     totalPages: int
-    nextPage: Union[HttpUrl, None] = None
+    nextPage: Optional[AnyUrl] = None
 
 
 class Models(BaseModel):
