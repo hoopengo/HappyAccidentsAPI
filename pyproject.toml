@@ -1,9 +1,9 @@
 [tool.poetry]
 name = "happyaccidentsapi"
-version = "0.0.0"
+version = "0.0.1"
 description = "API Wrapper for HappyAccidents"
 authors = ["hoopengo <hoopengo@yandex.ru>"]
-readme = ["README.md"]
+readme = ["PYPI.md"]
 license = "Apache-2.0"
 repository = "https://github.com/hoopengo/happyaccidentsapi"
 keywords = ["api", "happyaccidents", "ai"]
@@ -23,8 +23,8 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pydantic = "^2.1.1"
-aiohttp = {extras = ["speedups"], version = "^3.8.5"}
+pydantic = "2.0.0"
+aiohttp = { extras = ["speedups"], version = "^3.8.5" }
 aiofiles = "^23.1.0"
 
 
