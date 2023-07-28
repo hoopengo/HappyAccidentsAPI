@@ -30,16 +30,16 @@ class TestClient(unittest.IsolatedAsyncioTestCase):
     async def test_fetch_inferences(self):
         api = ClientAPI(token=getenv("TOKEN"))
 
-        obj = await api.fetch_inferences()
+        obj = await api.fetch_inferences(page_size=1000)
         # for item in obj.items:
         # print([image.get_url() for image in item.images])
 
         self.assertIsInstance(obj, ApiPaginatedListResponseInferenceHistoricalResult)
 
     async def test_fetch_community_inferences(self):
-        api = ClientAPI()
+        api = ClientAPI(token=getenv("TOKEN"))
 
-        obj = await api.fetch_community_inferences()
+        obj = await api.fetch_community_inferences(page_size=100)
         # for item in obj.items:
         #     print([image.get_url() for image in item.images])
 
@@ -70,14 +70,14 @@ class TestClient(unittest.IsolatedAsyncioTestCase):
     async def test_fetch_models(self):
         api = ClientAPI()
 
-        obj = await api.fetch_models(query="Stable", nsfw=True)
+        obj = await api.fetch_models(page_size=1000)
 
         self.assertIsInstance(obj, Models)
 
     async def test_fetch_metadata_items(self):
         api = ClientAPI()
 
-        obj = await api.fetch_metadata_items(query="Stable")
+        obj = await api.fetch_metadata_items(page_size=1000)
         # for item in obj.items:
         #     print(f"{item.name=}, {item.id=}, {item.externalId=}")
 
