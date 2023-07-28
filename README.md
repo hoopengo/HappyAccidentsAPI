@@ -39,26 +39,27 @@ poetry add happyaccideentsapi
 import asyncio
 
 from happyaccidentsapi import ClientAPI
-from happyaccidentsapi.models import CreateInferenceParams, Inference
-from happyaccidentsapi.enums import InferenceStatus
+from happyaccidentsapi.models import CreateInferenceParams
 
-api = ClientAPI(token="...")
 
-inference_params = CreateInferenceParams(
-  modelId="23b165c03d064449b5e8110fdfa3987c",
-  prompt = "Beautiful girl on the beach",
-)
 async def main():
-  inference: Inference = await api.inference(inference_params)
+    api = ClientAPI(token="...")
+    model = (await api.fetch_metadata_items("Stable Diffusion v1.5")).first()
 
-  print(inference.images)  # [<ImageRecord ...>, ...]
+    inference_params = CreateInferenceParams(
+        modelId=model.id,
+        prompt="Beautiful girl on the beach",
+        numImagesToGenerate=5,
+    )
 
-  for v,image in enumerate(inference.images):
-    print(image.get_href())  # https://https://ik.imagekit.io/.../result-4.png
-    image.save(f"./images/{image.id}-{image.filename}")
+    inference = await api.create_inference(inference_params)  # <InferenceHistoricalResult ...>
+    for image in inference.images:  # [<ImageRecord ...>, ...]
+        print(image.get_url())  # https://https://ik.imagekit.io/.../result-4.png
+        await image.save(f"./images/{image.id}-{image.filename}")
+
 
 if __name__ == "__main__":
-  asyncio.run(main())
+    asyncio.run(main())
 ```
 
 NOTE: It is not advised to leave your token directly in your code, as it allows anyone with it to access your account. If you intend to make your code public you should store it securely.
@@ -67,5 +68,6 @@ NOTE: It is not advised to leave your token directly in your code, as it allows 
 
 - [Documentation](https://github.com/hoopengo/HappyAccidentsAPI/tree/master/docs/)
 - [Examples](https://github.com/hoopengo/HappyAccidentsAPI/tree/master/examples/)
+- [How to get token?](https://github.com/hoopengo/HappyAccidentsAPI/blob/master/docs/get_token.md)
 
 [//]: <- [Try it Out](https://t.me/HotBebrasBot)>
