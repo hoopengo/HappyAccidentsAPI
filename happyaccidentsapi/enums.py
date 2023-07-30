@@ -1,12 +1,12 @@
 from enum import Enum
 
 
-class AccountStatus(Enum):
+class AccountStatus(str, Enum):
     ACTIVE = "ACTIVE"
     BANNED = "BANNED"
 
 
-class CivitAiBaseModelType(Enum):
+class CivitAiBaseModelType(str, Enum):
     SD14 = "SD 1.4"
     SD15 = "SD 1.5"
     SD20 = "SD 2.0"
@@ -16,7 +16,7 @@ class CivitAiBaseModelType(Enum):
     OTHER = "Other"
 
 
-class CivitAiModelType(Enum):
+class CivitAiModelType(str, Enum):
     CHECKPOINT = "Checkpoint"
     TEXTUAL_INVERSION = "TextualInversion"
     HYPERNETWORK = "Hypernetwork"
@@ -29,14 +29,14 @@ class CivitAiModelType(Enum):
     WILCARDS = "Wildcards"
 
 
-class CivitAiSortByType(Enum):
+class CivitAiSortByType(str, Enum):
     HIGHEST_RATED = "Highest Rated"
     MOST_DOWNLOADED = "Most Downloaded"
     NEWEST = "Newest"
     FAVORITED = "Favorited"
 
 
-class DownloadStatus(Enum):
+class DownloadStatus(str, Enum):
     QUEUE = "QUEUED"
     DOWNLOADING = "DOWNLOADING"
     CONVERTING = "CONVERTING"
@@ -44,13 +44,13 @@ class DownloadStatus(Enum):
     FAILED = "FAILED"
 
 
-class InferenceStatus(Enum):
+class InferenceStatus(str, Enum):
     PENDING = "PENDING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
 
 
-class InferenceType(Enum):
+class InferenceType(str, Enum):
     FACE_RESTORE = "FACE_RESTORE"
     UPSCALING = "UPSCALING"
     IMAGE_TO_IMAGE = "IMAGE_TO_IMAGE"
@@ -61,7 +61,7 @@ class InferenceType(Enum):
     CONTROLNET_INPAINTING = "CONTROLNET_INPAINTING"
 
 
-class NotificationStatus(Enum):
+class NotificationStatus(str, Enum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
@@ -69,7 +69,7 @@ class NotificationStatus(Enum):
     SEND_FAILURE = "SEND_FAILURE"
 
 
-class PreprocessingTechnique(Enum):
+class PreprocessingTechnique(str, Enum):
     CANNY_EDGES = "CANNY_EDGES"
     OPENPOSE = "OPENPOSE"
     SCRIBBLE = "SCRIBBLE"
@@ -81,14 +81,14 @@ class PreprocessingTechnique(Enum):
     TILE = "TILE"
 
 
-class QueuePriority(Enum):
+class QueuePriority(str, Enum):
     TEN_MINUTES = "10m"
     ONE_MINUTE = "1m"
     TEN_SECONDS = "10s"
     ONE_SECOND = "1s"
 
 
-class SamplingMethod(Enum):
+class SamplingMethod(str, Enum):
     EULER = "EULER"
     EULER_A = "EULER_A"
     LMS = "LMS"
@@ -106,13 +106,13 @@ class SamplingMethod(Enum):
     DPM_DISCRETE_SCHEDULER_ANCESTRAL = "DPM_DISCRETE_SCHEDULER_ANCESTRAL"
 
 
-class VariationalAutoEncoder(Enum):
+class VariationalAutoEncoder(str, Enum):
     SD_VAE_FT_EMA = "stabilityai/sd-vae-ft-ema"
     SD_VAE_FT_MSE = "stabilityai/sd-vae-ft-mse"
     ABYSS_ORANGE_MIX = "abyss-orange-mix"
     KL_F8_ANIME2 = "kl-f8-anime2"
 
 
-class UserRole(Enum):
+class UserRole(str, Enum):
     ADMIN = "ADMIN"
     MOD = "MOD"
