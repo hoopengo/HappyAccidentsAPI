@@ -13,6 +13,7 @@ from happyaccidentsapi import (
     MetadataItems,
     Models,
     SamplingMethod,
+    VariationalAutoEncoder,
 )
 
 load_dotenv()
@@ -53,6 +54,7 @@ class TestClient(unittest.IsolatedAsyncioTestCase):
             modelId="841993c68c9b45e3a21d312508578e8f",
             prompt="beach",
             samplingMethod=SamplingMethod.DPM_SOLVER_MULTISTEP_2PLUS_KARRAS,
+            vae=VariationalAutoEncoder.ABYSS_ORANGE_MIX,
         )
         obj = await api.create_inference(prompt)
         # for image in obj.images:

@@ -150,8 +150,8 @@ class Models(BaseModel):
 
 
 class CannyEdgesPayload(BaseModel):
-    lowThreshold: int = Field(title="Lowthreshold")
-    upperThreshold: int = Field(title="Upperthreshold")
+    lowThreshold: int = Field(ge=1, le=255, title="Lowthreshold")
+    upperThreshold: int = Field(ge=1, le=255, title="Upperthreshold")
 
 
 class Esrgan4xUpscalingParams(BaseModel):
@@ -176,8 +176,8 @@ class HedPayload(BaseModel):
 
 class HighResFixParams(BaseModel):
     enabled: Optional[bool] = Field(False, title="Enabled")
-    imageStrength: Optional[float] = Field(0.2, title="Imagestrength")
-    steps: Optional[int] = Field(25, title="Steps")
+    imageStrength: Optional[float] = Field(0.2, ge=0.0, le=0.9, title="Imagestrength")
+    steps: Optional[int] = Field(25, ge=1, le=75, title="Steps")
 
 
 class ImageRecord(BaseModel):
@@ -237,18 +237,18 @@ class ImageRecord(BaseModel):
 
 class LoraParams(BaseModel):
     id: str = Field(title="Id")
-    weight: float = Field(title="Weight")
+    weight: float = Field(ge=0, le=1, title="Weight")
 
 
 class MidasDepthPayload(BaseModel):
     surfaceNormalAngleRadians: float = Field(title="Surfacenormalangleradians")
-    backgroundThreshold: float = Field(title="Backgroundthreshold")
+    backgroundThreshold: float = Field(ge=0.0, le=1.0, title="Backgroundthreshold")
     depthAndNormal: bool = Field(title="Depthandnormal")
 
 
 class MlsdPayload(BaseModel):
-    valueThreshold: float = Field(title="Valuethreshold")
-    distanceThreshold: float = Field(title="Distancethreshold")
+    valueThreshold: float = Field(ge=0.0, le=2.0, title="Valuethreshold")
+    distanceThreshold: float = Field(ge=1, le=20, title="Distancethreshold")
 
 
 class ModelDownloadRequestParams(BaseModel):
@@ -296,10 +296,14 @@ class PreprocessingParams(BaseModel):
         ]
     ] = Field(None, title="Preprocessingpayload")
     controlnetConditioningScale: Optional[float] = Field(
-        1, title="Controlnetconditioningscale"
+        1, ge=0.1, le=2.0, title="Controlnetconditioningscale"
     )
-    controlGuidanceStart: Optional[float] = Field([0.0], title="Controlguidancestart")
-    controlGuidanceEnd: Optional[float] = Field([1.0], title="Controlguidanceend")
+    controlGuidanceStart: Optional[float] = Field(
+        [0.0], ge=0.0, le=1.0, title="Controlguidancestart"
+    )
+    controlGuidanceEnd: Optional[float] = Field(
+        [1.0], ge=0.0, le=1.0, title="Controlguidanceend"
+    )
     preprocessedImageUrl: Optional[str] = Field(None, title="Preprocessedimageurl")
 
 
@@ -327,18 +331,20 @@ class CreateInferenceParams(BaseModel):
     negativePrompt: Optional[str] = Field("", title="Negativeprompt")
     baseImageUrl: Optional[str] = Field(None, title="Baseimageurl")
     maskImageUrl: Optional[str] = Field(None, title="Maskimageurl")
-    inpaintingMaskBlur: Optional[float] = Field(3.0, title="Inpaintingmaskblur")
-    outputWpx: Optional[int] = Field(512, title="Outputwpx")
-    outputHpx: Optional[int] = Field(512, title="Outputhpx")
+    inpaintingMaskBlur: Optional[float] = Field(
+        3.0, ge=0, le=10, title="Inpaintingmaskblur"
+    )
+    outputWpx: Optional[int] = Field(512, ge=1, le=1024, title="Outputwpx")
+    outputHpx: Optional[int] = Field(512, ge=1, le=1024, title="Outputhpx")
     numImagesToGenerate: Optional[int] = Field(1, title="Numimagestogenerate")
-    numInferenceSteps: Optional[int] = Field(25, title="Numinferencesteps")
+    numInferenceSteps: Optional[int] = Field(25, ge=1, le=75, title="Numinferencesteps")
     samplingMethod: Optional[SamplingMethod] = "EULER"  # noqa: F405
     vae: Optional[VariationalAutoEncoder] = "stabilityai/sd-vae-ft-mse"  # noqa: F405
     lora: Optional[LoraParams] = None
     embeddingIds: Optional[List[str]] = Field([], title="Embeddingids")
-    guidanceScale: Optional[float] = Field(7.0, title="Guidancescale")
-    strength: Optional[float] = Field(0.5, title="Strength", le=0.9, ge=0.1)
-    clipSkip: Optional[int] = Field(1, title="Clipskip")
+    guidanceScale: Optional[float] = Field(7.0, ge=1, le=20, title="Guidancescale")
+    strength: Optional[float] = Field(0.5, title="Strength", le=0.9, ge=0.0)
+    clipSkip: Optional[int] = Field(1, ge=1, le=5, title="Clipskip")
     seed: Optional[int] = Field(None, title="Seed")
     controlNetPayloads: Optional[List[PreprocessingParams]] = Field(
         [], title="Controlnetpayloads"
